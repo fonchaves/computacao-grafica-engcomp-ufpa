@@ -1,121 +1,165 @@
-// Interacao.c - Isabel H. Manssour
-// Um programa OpenGL simples que desenha um  quadrado em
-// uma janela GLUT de acordo com interações do usuário.
-// Este código está baseado nos exemplos 
-// disponíveis no livro "OpenGL SuperBible", 
-// 2nd Edition, de Richard S. e Wright Jr.
+/*  Universidade Federal do Pará
+	Instituto de Tecnologia
+	Faculdade de Engenharia da Computação e Telecomunicações
+
+	Trabalho 01 de Computação Gráfica
+	Prof. Manuel Ribeiro
+	Data: 22/04/2014
+
+	Equipe:
+	Leandro Fonseca Chaves		- 10080004701
+	Douglas da Rocha Cirqueira  - 10080002101
+	Evannelson Soares Jr.		- 10080007001
+	
+	Descrição: O programa consiste de duas viewports demonstrando as transformações
+	de translação, escalonamento, rotação e espelhamento, usando interações em tempo
+	real com teclado e/ou mouse.
+	Além disso, também é demonstrado transformações de projeção ortográfica e perspectiva.
+	Todas as funcionalidades são exibidas ao usuário a partir de menus de navegação e dicas
+	de auxilio ao usuário.
+
+
+1.  Duas viewports
+2. Demonstrar as transformações de translação, escalamento rotação e espelhamento, usando interações em tempo real com o teclado e/ou mouse
+3. Demonstrar as transformações de projeção: ortográfica e perspectiva, , usando interações em tempo real com o teclado e/ou mouse
+4. Mudar a posição da câmara,  usando interações em tempo real com o teclado e/ou mouse
+5. Cada equipe escolhe as primitivas que vai usar, 2D ou 3 D.
+6. Orientar para o usuário como interagir (teclado ou  mouse) para realizar as operações
+7. Código bem documentado (comentários explicando), usando programação modular.
+
+*/
+
 
 #include <GL/glut.h>
+#include <string.h>
+#include <stdio.h>
 
-GLfloat xf, yf, win;
-GLint view_w, view_h;
+// Constantes
+#define QUADRADO  1
+#define TRIANGULO 2
+#define LOSANGO   3
+#define TEAPOT    4
+
+// Variáveis
+char texto[30];
+GLfloat win, r, g, b;
+GLint view_w, view_h, primitiva;
+
+// Função que desenha um quadrado
+void DesenhaQuadrado(void)
+{
+	glBegin(GL_QUADS);
+		glVertex2f(-25.0f, -25.0f);
+		glVertex2f(-25.0f, 25.0f);
+		glVertex2f(25.0f, 25.0f);
+		glVertex2f(25.0f, -25.0f);               
+	glEnd();
+}
+
+// Função que desenha um triângulo
+void DesenhaTriangulo(void)
+{
+	glBegin(GL_TRIANGLES);
+		glVertex2f(-25.0f, -25.0f);
+		glVertex2f(0.0f, 25.0f);
+		glVertex2f(25.0f, -25.0f);              
+	glEnd();
+}
+
+// Função que desenha um losango
+void DesenhaLosango(void)
+{
+	glBegin(GL_POLYGON);
+		glVertex2f(-25.0f, 0.0f);
+		glVertex2f(0.0f, 25.0f);
+		glVertex2f(25.0f, 0.0f);
+		glVertex2f(0.0f, -25.0f);               
+	glEnd();
+}
+
+void DesenhaTeapot(void)
+{
+	// Desenha o teapot com a cor corrente (wire-frame)
+	glutWireTeapot(50.0f);
+}
+
+// Desenha um texto na janela GLUT
+void DesenhaTexto(char *string) 
+{  
+	glPushMatrix();
+	// Posição no universo onde o texto será colocado          
+		glRasterPos2f(-win,win-(win*0.08)); 
+		// Exibe caracter a caracter
+		while(*string)
+			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_10,*string++); 
+	glPopMatrix();
+}
 
 // Função callback chamada para fazer o desenho
 void Desenha(void)
 {
-     glMatrixMode(GL_MODELVIEW);
-     glLoadIdentity();
-                   
-     glClear(GL_COLOR_BUFFER_BIT);
-     // Desenha um retângulo preenchido com a cor corrente
-     glBegin(GL_POLYGON);
-               glVertex2f(0.0f, 0.0f);
-               glVertex2f(xf, 0.0f);
-               glVertex2f(xf, yf);
-               glVertex2f(0.0f, yf);               
-     glEnd();
-     glFlush();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	// Define a cor corrente
+	glColor3f(r,g,b);
+
+	// Desenha uma primitiva     
+	switch (primitiva) {
+	case QUADRADO:  DesenhaQuadrado();
+	    break;
+	case TRIANGULO: DesenhaTriangulo();                          
+	    break;
+	case LOSANGO:   DesenhaLosango();                       
+	    break;
+	case TEAPOT:    DesenhaTeapot();                       
+	    break;
+	}
+
+	// Exibe a posição do mouse na janela
+	glColor3f(1.0f,1.0f,1.0f);
+	DesenhaTexto(texto);
+	
+	// Executa os comandos OpenGL
+	glutSwapBuffers();
 }
 
 // Inicializa parâmetros de rendering
 void Inicializa (void)
-{   
-    // Define a cor de fundo da janela de visualização como preta
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    xf=50.0f;
-    yf=50.0f;
-    win=250.0f;
+{ 
+    
+}
+
+// Função usada para especificar o volume de visualização
+void EspecificaParametrosVisualizacao(void)
+{
+	
 }
 
 // Função callback chamada quando o tamanho da janela é alterado 
 void AlteraTamanhoJanela(GLsizei w, GLsizei h)
-{ 
-    // Especifica as dimensões da Viewport
-    glViewport(0, 0, w, h);
-    view_w = w;
-    view_h = h;                   
-
-    // Inicializa o sistema de coordenadas
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D (-win, win, -win, win);
-}
-
-// Função callback chamada para gerenciar eventos de teclado
-void GerenciaTeclado(unsigned char key, int x, int y)
 {
-    switch (key) {
-            case 'R': 
-            case 'r':// muda a cor corrente para vermelho
-                     glColor3f(1.0f, 0.0f, 0.0f);
-                     break;
-            case 'G':
-            case 'g':// muda a cor corrente para verde
-                     glColor3f(0.0f, 1.0f, 0.0f);
-                     break;
-            case 'B':
-            case 'b':// muda a cor corrente para azul
-                     glColor3f(0.0f, 0.0f, 1.0f);
-                     break;
-    }
-    glutPostRedisplay();
+	
 }
-           
+
 // Função callback chamada para gerenciar eventos do mouse
 void GerenciaMouse(int button, int state, int x, int y)
 {
-    if (button == GLUT_LEFT_BUTTON)
-         if (state == GLUT_DOWN) {
-                  // Troca o tamanho do retângulo, que vai do centro da 
-                  // janela até a posição onde o usuário clicou com o mouse
-                  xf = ( (2 * win * x) / view_w) - win;
-                  yf = ( ( (2 * win) * (y-view_h) ) / -view_h) - win;
-         }
-    glutPostRedisplay();
+	
 }
 
-// Função callback chamada para gerenciar eventos do teclado   
-// para teclas especiais, tais como F1, PgDn e Home
-void TeclasEspeciais(int key, int x, int y)
-{
-    if(key == GLUT_KEY_UP) {
-           win -= 20;
-           glMatrixMode(GL_PROJECTION);
-           glLoadIdentity();
-           gluOrtho2D (-win, win, -win, win);
-    }
-    if(key == GLUT_KEY_DOWN) {
-           win += 20;
-           glMatrixMode(GL_PROJECTION);
-           glLoadIdentity();
-           gluOrtho2D (-win, win, -win, win);
-    }
-    glutPostRedisplay();
-}
-                      
-// Programa Principal 
+// Programa Principal
 int main(int argc, char **argv)
 {
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-    glutInitWindowSize(350,300);
-    glutInitWindowPosition(10,10);
-    glutCreateWindow("Exemplo de Interacao");
-    glutDisplayFunc(Desenha);
-    glutReshapeFunc(AlteraTamanhoJanela);
-    glutKeyboardFunc(GerenciaTeclado);
-    glutMouseFunc(GerenciaMouse);
-    glutSpecialFunc(TeclasEspeciais);     
-    Inicializa();
-    glutMainLoop();
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+	glutInitWindowSize(600,600);
+	glutCreateWindow("Trabalho 01 - Computação Gráfica");
+	glutDisplayFunc(Desenha);
+	glutReshapeFunc(AlteraTamanhoJanela);
+	glutMouseFunc(GerenciaMouse);
+	Inicializa();
+	glutMainLoop();
 }
